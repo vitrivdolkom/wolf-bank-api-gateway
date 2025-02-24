@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "5188:5188"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - redis
+  redis:
+    image: redis
+    container_name: redis-cache
+    restart: always
+    ports:
+      - "6379:6379"
