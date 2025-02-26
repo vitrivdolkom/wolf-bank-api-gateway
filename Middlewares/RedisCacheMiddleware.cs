@@ -66,7 +66,7 @@ namespace WolfBankGateway.Middlewares
         if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
         {
           var responseCacheObjectJson = JsonConvert.SerializeObject(responseCacheObject);
-          await db.StringSetAsync(cacheKey, responseCacheObjectJson, TimeSpan.FromMinutes(1));
+          await db.StringSetAsync(cacheKey, responseCacheObjectJson, TimeSpan.FromDays(1));
         }
 
         await memoryStream.CopyToAsync(originalBodyStream);
