@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.transaction_service;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/api/annotations.proto";
+import "Protos/common.proto";
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+service BankAccountService {
+  rpc Create(CreateBankAccountRequest) returns (BankAccountDto) {
+    option (google.api.http) = {
+      post: "/api/bank-accounts"
+      body: "*"
+    };
+  }
+
+  rpc Delete(DeleteBankAccountRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/bank-accounts/{bank_account_id}"
+    };
+  }
+
+  rpc GetAll(GetAllBankAccountsRequest) returns (GetAllBankAccountsResponse) {
+    option (google.api.http) = {
+      get: "/api/bank-accounts"
+      additional_bindings {
+        get: "/api/bank-accounts?client_id={client_id}&offset={offset}&limit={limit}"
+      }
+    };
+  }
+
+  rpc Get(GetBankAccountRequest) returns (BankAccountDto) {
+    option (google.api.http) = {
+      get: "/api/bank-accounts/{bank_account_id}?client_id={client_id}"
+    };
+  }
+}
+
+message CreateBankAccountRequest {
+  string idempotency_key = 1;
+  string client_id = 2;
+}
+
+message DeleteBankAccountRequest {
+  string bank_account_id = 1;
+  string client_id = 2;
+}
+
+message GetAllBankAccountsRequest {
+  string client_id = 1;
+  google.protobuf.Int64Value offset = 2;
+  google.protobuf.Int64Value limit = 3;
+}
+
+message GetAllBankAccountsResponse {
+  repeated BankAccountDto bank_accounts = 1;
+}
+
+message BankAccountDto {
+  string bank_account_id = 1;
+  google.protobuf.StringValue agreement_id = 2;
+  string client_id = 3;
+  WolfBankGateway.Protos.common.DecimalValue balance = 4;
+  BankAccountType type = 5;
+  BankAccountStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+enum BankAccountType {
+  CREDIT = 0;
+  DEBIT = 1;
+}
+
+enum BankAccountStatus {
+  ACTIVE = 0;
+  BLOCKED = 1;
+  CLOSED = 2;
+}
+
+message GetBankAccountRequest {
+  string client_id = 1;
+  string bank_account_id = 2;
+}

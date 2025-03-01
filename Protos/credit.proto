@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.credit;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "Protos/common.proto";
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+service CreditService {
+  rpc Get(GetCreditRequest) returns (GetCreditResponse);
+  rpc GetAll(GetAllCreditRequest) returns (GetAllCreditResponse);
+  rpc GetPayments(GetPaymentsRequest) returns (GetPaymentResponse);
+}
+
+message GetCreditRequest {
+  string client_id = 1;
+  string agreement_id = 2;
+}
+
+message GetCreditResponse {
+  string agreement_id = 1;
+  string product_code = 2;
+  string client_id = 3;
+  WolfBankGateway.Protos.common.DecimalValue interest = 4;
+  int32 term = 5;
+  WolfBankGateway.Protos.common.DecimalValue principal_amount = 6;
+  WolfBankGateway.Protos.common.DecimalValue origination_amount = 7;
+  AgreementStatus status = 8;
+  google.protobuf.Timestamp disbursement_date = 9;
+  google.protobuf.Timestamp next_payment_date = 10;
+}
+
+message GetAllCreditRequest {
+  string client_id = 1;
+  google.protobuf.Int64Value offset = 2;
+  google.protobuf.Int64Value limit = 3;
+}
+
+message GetAllCreditResponse {
+  repeated GetCreditResponse credits = 1;
+}
+
+enum AgreementStatus {
+  NEW = 0;
+  ACTIVE = 1;
+  CLOSED = 2;
+}
+
+message GetPaymentsRequest {
+  string client_id = 1;
+  string agreement_id = 2;
+}
+
+message GetPaymentResponse {
+  string agreement_id = 1;
+  string version = 2;
+  repeated SchedulePayment schedule_payments = 3;
+}
+
+message SchedulePayment {
+  SchedulePaymentStatus status = 1;
+  google.protobuf.Timestamp payment_date = 2;
+  WolfBankGateway.Protos.common.DecimalValue period_payment = 3;
+  WolfBankGateway.Protos.common.DecimalValue interest_payment = 4;
+  WolfBankGateway.Protos.common.DecimalValue principal_payment = 5;
+  int32 period_number = 6;
+}
+
+enum SchedulePaymentStatus {
+  PAID = 0;
+  OVERDUE = 1;
+  FUTURE = 2;
+}

@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.transaction_service;
+
+import "Protos/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "google/api/annotations.proto";
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+service TransactionService {
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse) {
+    option (google.api.http) = {
+      get: "/core/{bank_account_id}/history"
+    };
+  };
+}
+
+message GetHistoryRequest {
+  string bank_account_id = 1;
+  string client_id = 2;
+  google.protobuf.Int64Value offset = 3;
+  google.protobuf.Int64Value limit = 4;
+}
+
+message GetHistoryResponse {
+  repeated Transaction transactions = 1;
+}
+
+message Transaction {
+  string transaction_id = 1;
+  google.protobuf.StringValue from_bank_account_id = 2;
+  google.protobuf.StringValue to_bank_account_id = 3;
+  TransactionType type = 4;
+  WolfBankGateway.Protos.common.DecimalValue amount = 5;
+  string description = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+enum TransactionType {
+  TRANSFER = 0;
+  DEPOSIT = 1;
+  WITHDRAW = 2;
+  LOAN_PAYMENT = 3;
+  CREDIT_CHARGE = 4;
+}

@@ -4,13 +4,27 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IncludeHttpRuleProtos>true</IncludeHttpRuleProtos>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-    <PackageReference Include="MMLib.SwaggerForOcelot" Version="8.3.2" />
-    <PackageReference Include="Ocelot" Version="23.4.3" />
-    <PackageReference Include="Ocelot.Cache.CacheManager" Version="23.4.3" />
+    <PackageReference Include="Google.Protobuf" Version="3.29.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+    <Protobuf Include="Protos\bank_account.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\common.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\credit.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\payment_service.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\product.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\transaction_service.proto" GrpcServices="Client" />
+    <Protobuf Include="google/api/annotations.proto" GrpcServices="Client" />
+    <Protobuf Include="google/api/http.proto" GrpcServices="Client" />
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.70.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
   </ItemGroup>
 

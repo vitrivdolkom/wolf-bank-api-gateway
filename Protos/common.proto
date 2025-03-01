@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.common;
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+message DecimalValue {
+  uint32 scale = 1;
+  uint32 precision = 2;
+  bytes value = 3;
+}

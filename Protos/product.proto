@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.product;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "Protos/common.proto";
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+
+service ProductService {
+  rpc Create(CreateProductRequest) returns (google.protobuf.Empty);
+  rpc Get(GetProductRequest) returns (ProductDto);
+  rpc Calculate(CalculateRequest) returns (CalculateResponse);
+  rpc GetAll(GetAllProductRequest) returns (GetAllProductResponse);
+}
+
+message CreateProductRequest {
+  string idempotency_key = 1;
+  string client_id = 2;
+  string code = 3;
+  int32 min_term = 4;
+  int32 max_term = 5;
+  WolfBankGateway.Protos.common.DecimalValue min_principal_amount = 6;
+  WolfBankGateway.Protos.common.DecimalValue max_principal_amount = 7;
+  WolfBankGateway.Protos.common.DecimalValue min_interest = 8;
+  WolfBankGateway.Protos.common.DecimalValue max_interest = 9;
+  WolfBankGateway.Protos.common.DecimalValue min_origination_amount = 10;
+  WolfBankGateway.Protos.common.DecimalValue max_origination_amount = 11;
+}
+
+message GetProductRequest {
+  string client_id = 1;
+  string code = 2;
+}
+
+message CalculateRequest {
+  string client_id = 1;
+  int32 term = 2;
+  WolfBankGateway.Protos.common.DecimalValue amount = 3;
+}
+
+message CalculateResponse {
+  string code = 1;
+  int32 term = 2;
+  WolfBankGateway.Protos.common.DecimalValue amount = 3;
+  WolfBankGateway.Protos.common.DecimalValue interest = 4;
+  WolfBankGateway.Protos.common.DecimalValue origination_amount = 5;
+}
+
+message GetAllProductRequest {
+  string client_id = 1;
+  google.protobuf.Int64Value offset = 2;
+  google.protobuf.Int64Value limit = 3;
+}
+
+message GetAllProductResponse {
+  repeated ProductDto products = 1;
+}
+
+message ProductDto {
+  string code = 1;
+  int32 min_term = 2;
+  int32 max_term = 3;
+  WolfBankGateway.Protos.common.DecimalValue min_principal_amount = 4;
+  WolfBankGateway.Protos.common.DecimalValue max_principal_amount = 5;
+  WolfBankGateway.Protos.common.DecimalValue min_interest = 6;
+  WolfBankGateway.Protos.common.DecimalValue max_interest = 7;
+  WolfBankGateway.Protos.common.DecimalValue min_origination_amount = 8;
+  WolfBankGateway.Protos.common.DecimalValue max_origination_amount = 9;
+}

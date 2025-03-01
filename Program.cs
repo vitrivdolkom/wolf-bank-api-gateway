@@ -1,15 +1,11 @@
-using Ocelot.DependencyInjection;
-using Ocelot.Middleware;
 using StackExchange.Redis;
 using WolfBankGateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
-
-builder.Configuration.AddJsonFile("ocelot.json");
-builder.Services.AddSwaggerForOcelot(builder.Configuration);
-builder.Services.AddOcelot();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
 var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);
@@ -19,18 +15,14 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-  app.MapOpenApi();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
-app.UseSwaggerForOcelotUI(opt =>
-{
-  opt.PathToSwaggerGenerator = "/swagger/docs";
-});
+app.MapControllers();
 
 app.UseMiddleware<IdempotencyMiddleware>();
 app.UseMiddleware<AuthMiddleware>();
 app.UseMiddleware<RedisCacheMiddleware>();
-
-await app.UseOcelot();
 
 app.Run();

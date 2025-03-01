@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.payment_service;
+
+import "Protos/common.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+
+service PaymentService {
+  rpc Deposit(DepositRequest) returns (DepositResponse);
+  rpc Withdraw(WithdrawRequest) returns (WithdrawResponse);
+  rpc PayCredit(PayCreditRequest) returns (PayCreditResponse);
+}
+
+message DepositRequest {
+  string idempotency_key = 1;
+  string bank_account_id = 2;
+  string client_id = 3;
+  WolfBankGateway.Protos.common.DecimalValue amount = 4;
+}
+
+message DepositResponse {
+  string transaction_id = 1;
+  WolfBankGateway.Protos.common.DecimalValue new_balance = 2;
+  string message = 3;
+}
+
+message WithdrawRequest {
+  string idempotency_key = 1;
+  string bank_account_id = 2;
+  string client_id = 3;
+  WolfBankGateway.Protos.common.DecimalValue amount = 4;
+  google.protobuf.StringValue to_bank_account_id = 5;
+}
+
+message WithdrawResponse {
+  string transaction_id = 1;
+  WolfBankGateway.Protos.common.DecimalValue new_balance = 2;
+  string message = 3;
+}
+
+message PayCreditRequest {
+  string idempotency_key = 1;
+  string client_id = 2;
+  string agreement_id = 3;
+}
+
+message PayCreditResponse {
+  string transaction_id = 1;
+  WolfBankGateway.Protos.common.DecimalValue new_balance = 2;
+  string message = 3;
+}
