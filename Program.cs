@@ -1,7 +1,19 @@
 using StackExchange.Redis;
+using Asp.Versioning;
 using WolfBankGateway.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddMvc();
+builder.Services.AddApiVersioning(options =>
+ {
+   options.DefaultApiVersion = new ApiVersion(1);
+   options.ApiVersionReader = new UrlSegmentApiVersionReader();
+ }).AddApiExplorer(options =>
+ {
+   options.GroupNameFormat = "'v'V";
+   options.SubstituteApiVersionInUrl = true;
+ });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

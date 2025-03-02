@@ -1,0 +1,79 @@
+using Grpc.Core;
+using Grpc.Net.Client;
+using Microsoft.AspNetCore.Mvc;
+using WolfBankGateway.Protos.Services;
+
+namespace WolfBankGateway.Controllers;
+
+[Route("api/v{version:apiVersion}/[controller]")]
+[ApiController]
+public class CreditController : ControllerBase
+{
+  private readonly CreditService.CreditServiceClient _grpcClient;
+
+  public CreditController(IConfiguration configuration)
+  {
+    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ProductEngineGrpcConnection"));
+    var client = new CreditService.CreditServiceClient(channel);
+    _grpcClient = client;
+  }
+
+  [HttpGet("{agreementId}")]
+  public async Task<ActionResult<GetCreditResponse>> GetCredit(string agreementId)
+  {
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
+    var request = new GetCreditRequest
+    {
+      ClientId = clientId,
+      AgreementId = agreementId
+    };
+    var response = await _grpcClient.GetAsync(request, metadata);
+
+    return Ok(response);
+  }
+
+  [HttpGet("")]
+  public async Task<ActionResult<List<GetCreditResponse>>> GetAllCredits([FromQuery] long? offset, [FromQuery] long? limit)
+  {
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
+    var request = new GetAllCreditRequest
+    {
+      ClientId = clientId,
+      Offset = offset ?? 0,
+      Limit = limit ?? 10
+    };
+    var response = await _grpcClient.GetAllAsync(request, metadata);
+
+    return Ok(response.Credits);
+  }
+
+  [HttpGet("{agreementId}/payments")]
+  public async Task<ActionResult<GetPaymentResponse>> GetPayments(string agreementId)
+  {
+    // TODO remove client id when auth service is done
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
+    var request = new GetPaymentsRequest
+    {
+      ClientId = clientId,
+      AgreementId = agreementId
+    };
+    var response = await _grpcClient.GetPaymentsAsync(request, metadata);
+    // todo check if we need full response
+    return Ok(response);
+  }
+}

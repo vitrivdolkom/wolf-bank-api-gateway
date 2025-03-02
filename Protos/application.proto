@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package WolfBankGateway.Protos.application;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+enum ApplicationStatus {
+    NEW = 0;
+    SCORING = 1;
+    EMPLOYMENT_CHECK = 2;
+    APPROVED = 3;
+    REJECTED = 4;
+}
+
+service ApplicationService {
+  rpc Get(GetApplicationRequest) returns (ApplicationResponse);
+  rpc Create(CreateApplicationRequest) returns (ApplicationResponse);
+  rpc Update(UpdateApplicationRequest) returns (ApplicationResponse);
+  rpc Delete(DeleteApplicationRequest) returns (google.protobuf.Empty);
+  rpc List(ListApplicationRequest) returns (ListApplicationResponse);
+}
+
+message Decimal {
+  // value = unscaled * 10^(-scale)
+  int64 unscaled = 1;
+  int32 scale = 2;
+}
+
+message CreateApplicationRequest {
+  Decimal amount = 1;
+  uint32 term = 2;
+  Decimal interest = 3;
+}
+
+message UpdateApplicationRequest {
+  string id = 1;
+  Decimal amount = 2;
+  uint32 term = 3;
+  Decimal interest = 4;
+}
+
+message GetApplicationRequest {
+    string id = 1;
+}
+
+message DeleteApplicationRequest {
+    string id = 1;
+}
+
+message ListApplicationRequest {
+    repeated ApplicationStatus status = 1;
+    uint32 page = 2;
+    uint32 page_size = 3;
+}
+
+message ApplicationResponse {
+    string id = 1;
+    Decimal amount = 2;
+    uint32 term = 3;
+    Decimal interest = 4;
+    ApplicationStatus status = 5;
+    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp updated_at = 7;
+}
+
+message ListApplicationResponse {
+    repeated ApplicationResponse applications = 1;
+    uint32 page = 2;
+    uint32 page_size = 3;
+    uint32 total_count = 4;
+    uint32 total_pages = 5;
+}

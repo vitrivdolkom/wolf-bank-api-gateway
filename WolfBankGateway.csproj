@@ -8,9 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Google.Protobuf" Version="3.29.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+    <Protobuf Include="Protos\application.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\bank_account.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\common.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\credit.proto" GrpcServices="Client" />

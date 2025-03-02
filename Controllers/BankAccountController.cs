@@ -1,69 +1,127 @@
+using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 [ApiController]
-public class BankAccountsController : ControllerBase
+public class BankAccountController : ControllerBase
 {
-  private readonly BankAccountService.BankAccountServiceClient _grpcClient;
+  private readonly BankAccountService.BankAccountServiceClient _bankAccountClient;
+  private readonly TransactionService.TransactionServiceClient _transactionClient;
 
-  public BankAccountsController(BankAccountService.BankAccountServiceClient bankAccountServiceClient)
+  public BankAccountController(IConfiguration configuration)
   {
-    using var channel = GrpcChannel.ForAddress("https://localhost:7042");
-    var client = new BankAccountService.BankAccountServiceClient(channel);
-    _grpcClient = client;
+    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ProductEngineGrpcConnection"));
+    var bankAccountClient = new BankAccountService.BankAccountServiceClient(channel);
+    var transactionClient = new TransactionService.TransactionServiceClient(channel);
+    _bankAccountClient = bankAccountClient;
+    _transactionClient = transactionClient;
   }
 
   // POST /api/bank-accounts
   [HttpPost]
-  public async Task<IActionResult> CreateBankAccount([FromBody] CreateBankAccountRequest request)
+  public async Task<ActionResult<BankAccountDto>> CreateBankAccount()
   {
-    var response = await _grpcClient.CreateAsync(request);
+    var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+      { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() }
+    };
+
+    var request = new CreateBankAccountRequest
+    {
+      IdempotencyKey = idempotencyKey,
+      ClientId = clientId
+    };
+    var response = await _bankAccountClient.CreateAsync(request, metadata);
+
     return Ok(response);
   }
 
   // DELETE /api/bank-accounts/{bank_account_id}
   [HttpDelete("{bank_account_id}")]
-  public async Task<IActionResult> DeleteBankAccount(string bank_account_id, [FromQuery] string client_id)
+  public async Task<ActionResult> DeleteBankAccount(string bank_account_id)
   {
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
     var request = new DeleteBankAccountRequest
     {
       BankAccountId = bank_account_id,
-      ClientId = client_id
+      ClientId = clientId
     };
-    await _grpcClient.DeleteAsync(request);
-    return Ok();
+    await _bankAccountClient.DeleteAsync(request, metadata);
+
+    return NoContent();
   }
 
   // GET /api/bank-accounts
   [HttpGet]
-  public async Task<IActionResult> GetAllBankAccounts([FromQuery] string client_id, [FromQuery] long? offset, [FromQuery] long? limit)
+  public async Task<ActionResult<List<BankAccountDto>>> GetAllBankAccounts([FromQuery] long? offset, [FromQuery] long? limit)
   {
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
     var request = new GetAllBankAccountsRequest
     {
-      ClientId = client_id,
+      ClientId = clientId,
       Offset = offset,
       Limit = limit
     };
+    var response = await _bankAccountClient.GetAllAsync(request, metadata);
 
-    var response = await _grpcClient.GetAllAsync(request);
     return Ok(response.BankAccounts);
   }
 
   // GET /api/bank-accounts/{bank_account_id}
   [HttpGet("{bank_account_id}")]
-  public async Task<IActionResult> GetBankAccount(string bank_account_id, [FromQuery] string client_id)
+  public async Task<ActionResult<BankAccountDto>> GetBankAccount(string bank_account_id)
   {
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
     var request = new GetBankAccountRequest
     {
       BankAccountId = bank_account_id,
-      ClientId = client_id
+      ClientId = clientId
+    };
+    var response = await _bankAccountClient.GetAsync(request, metadata);
+
+    return Ok(response);
+  }
+
+  [HttpGet("{bank_account_id}/history")]
+  public async Task<IActionResult> GetHistory(string bank_account_id, [FromQuery] long? offset, [FromQuery] long? limit)
+  {
+    var clientId = HttpContext.Items["UserId"].ToString();
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
     };
 
-    var response = await _grpcClient.GetAsync(request);
+    var request = new GetHistoryRequest
+    {
+      BankAccountId = bank_account_id,
+      ClientId = clientId,
+      Offset = offset ?? 0,
+      Limit = limit ?? 10
+    };
+    var response = await _transactionClient.GetHistoryAsync(request, metadata);
+
     return Ok(response);
   }
 }
