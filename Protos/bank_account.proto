@@ -1,43 +1,20 @@
 syntax = "proto3";
 
-package WolfBankGateway.Protos.transaction_service;
+package com.bank.wolf.application.v1.bank_account;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-import "google/api/annotations.proto";
-import "Protos/common.proto";
+import "Protos/General.proto";
 
+option java_multiple_files = true;
 option csharp_namespace = "WolfBankGateway.Protos.Services";
 
 service BankAccountService {
-  rpc Create(CreateBankAccountRequest) returns (BankAccountDto) {
-    option (google.api.http) = {
-      post: "/api/bank-accounts"
-      body: "*"
-    };
-  }
-
-  rpc Delete(DeleteBankAccountRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {
-      delete: "/api/bank-accounts/{bank_account_id}"
-    };
-  }
-
-  rpc GetAll(GetAllBankAccountsRequest) returns (GetAllBankAccountsResponse) {
-    option (google.api.http) = {
-      get: "/api/bank-accounts"
-      additional_bindings {
-        get: "/api/bank-accounts?client_id={client_id}&offset={offset}&limit={limit}"
-      }
-    };
-  }
-
-  rpc Get(GetBankAccountRequest) returns (BankAccountDto) {
-    option (google.api.http) = {
-      get: "/api/bank-accounts/{bank_account_id}?client_id={client_id}"
-    };
-  }
+  rpc Create(CreateBankAccountRequest) returns (BankAccountDto);
+  rpc Close(CloseBankAccountRequest) returns (google.protobuf.Empty);
+  rpc GetAll(GetAllBankAccountsRequest) returns (GetAllBankAccountsResponse);
+  rpc Get(GetBankAccountRequest) returns (BankAccountDto);
 }
 
 message CreateBankAccountRequest {
@@ -45,7 +22,7 @@ message CreateBankAccountRequest {
   string client_id = 2;
 }
 
-message DeleteBankAccountRequest {
+message CloseBankAccountRequest {
   string bank_account_id = 1;
   string client_id = 2;
 }
@@ -64,7 +41,7 @@ message BankAccountDto {
   string bank_account_id = 1;
   google.protobuf.StringValue agreement_id = 2;
   string client_id = 3;
-  WolfBankGateway.Protos.common.DecimalValue balance = 4;
+  com.bank.wolf.application.v1.common.DecimalValue balance = 4;
   BankAccountType type = 5;
   BankAccountStatus status = 6;
   google.protobuf.Timestamp created_at = 7;

@@ -1,6 +1,6 @@
 using Grpc.Core;
-using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
+using WolfBankGateway.Converters;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -11,14 +11,13 @@ public class BankAccountController : ControllerBase
 {
   private readonly BankAccountService.BankAccountServiceClient _bankAccountClient;
   private readonly TransactionService.TransactionServiceClient _transactionClient;
+  private readonly ILogger<BankAccountController> _logger;
 
-  public BankAccountController(IConfiguration configuration)
+  public BankAccountController(BankAccountService.BankAccountServiceClient bankAccountClient, TransactionService.TransactionServiceClient transactionClient, ILogger<BankAccountController> logger)
   {
-    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ProductEngineGrpcConnection"));
-    var bankAccountClient = new BankAccountService.BankAccountServiceClient(channel);
-    var transactionClient = new TransactionService.TransactionServiceClient(channel);
     _bankAccountClient = bankAccountClient;
     _transactionClient = transactionClient;
+    _logger = logger;
   }
 
   // POST /api/bank-accounts
@@ -45,7 +44,7 @@ public class BankAccountController : ControllerBase
 
   // DELETE /api/bank-accounts/{bank_account_id}
   [HttpDelete("{bank_account_id}")]
-  public async Task<ActionResult> DeleteBankAccount(string bank_account_id)
+  public async Task<ActionResult> CloseBankAccount(string bank_account_id)
   {
     var clientId = HttpContext.Items["UserId"].ToString();
     var metadata = new Metadata
@@ -53,12 +52,12 @@ public class BankAccountController : ControllerBase
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
     };
 
-    var request = new DeleteBankAccountRequest
+    var request = new CloseBankAccountRequest
     {
       BankAccountId = bank_account_id,
       ClientId = clientId
     };
-    await _bankAccountClient.DeleteAsync(request, metadata);
+    await _bankAccountClient.CloseAsync(request, metadata);
 
     return NoContent();
   }
@@ -100,12 +99,13 @@ public class BankAccountController : ControllerBase
       ClientId = clientId
     };
     var response = await _bankAccountClient.GetAsync(request, metadata);
+    _logger.LogInformation("Bank account balance: {Response}", DecimalValueConverter.ToDecimal(response.Balance));
 
     return Ok(response);
   }
 
   [HttpGet("{bank_account_id}/history")]
-  public async Task<IActionResult> GetHistory(string bank_account_id, [FromQuery] long? offset, [FromQuery] long? limit)
+  public async Task<ActionResult<List<Transaction>>> GetHistory(string bank_account_id, [FromQuery] long? offset, [FromQuery] long? limit)
   {
     var clientId = HttpContext.Items["UserId"].ToString();
     var metadata = new Metadata
@@ -120,8 +120,9 @@ public class BankAccountController : ControllerBase
       Offset = offset ?? 0,
       Limit = limit ?? 10
     };
+    _logger.LogInformation("Get history request: {Request}", request);
     var response = await _transactionClient.GetHistoryAsync(request, metadata);
 
-    return Ok(response);
+    return Ok(response.Transactions);
   }
 }

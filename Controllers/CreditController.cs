@@ -9,13 +9,11 @@ namespace WolfBankGateway.Controllers;
 [ApiController]
 public class CreditController : ControllerBase
 {
-  private readonly CreditService.CreditServiceClient _grpcClient;
+  private readonly CreditService.CreditServiceClient _creditServiceClient;
 
-  public CreditController(IConfiguration configuration)
+  public CreditController(CreditService.CreditServiceClient creditServiceClient)
   {
-    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ProductEngineGrpcConnection"));
-    var client = new CreditService.CreditServiceClient(channel);
-    _grpcClient = client;
+    _creditServiceClient = creditServiceClient;
   }
 
   [HttpGet("{agreementId}")]
@@ -32,7 +30,7 @@ public class CreditController : ControllerBase
       ClientId = clientId,
       AgreementId = agreementId
     };
-    var response = await _grpcClient.GetAsync(request, metadata);
+    var response = await _creditServiceClient.GetAsync(request, metadata);
 
     return Ok(response);
   }
@@ -52,7 +50,7 @@ public class CreditController : ControllerBase
       Offset = offset ?? 0,
       Limit = limit ?? 10
     };
-    var response = await _grpcClient.GetAllAsync(request, metadata);
+    var response = await _creditServiceClient.GetAllAsync(request, metadata);
 
     return Ok(response.Credits);
   }
@@ -72,7 +70,7 @@ public class CreditController : ControllerBase
       ClientId = clientId,
       AgreementId = agreementId
     };
-    var response = await _grpcClient.GetPaymentsAsync(request, metadata);
+    var response = await _creditServiceClient.GetPaymentsAsync(request, metadata);
     // todo check if we need full response
     return Ok(response);
   }

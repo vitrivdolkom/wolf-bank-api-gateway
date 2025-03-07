@@ -1,5 +1,4 @@
 using Grpc.Core;
-using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Converters;
 using WolfBankGateway.Models;
@@ -11,13 +10,13 @@ namespace WolfBankGateway.Controllers;
 [ApiController]
 public class PaymentController : ControllerBase
 {
-  private readonly PaymentService.PaymentServiceClient _grpcClient;
+  private readonly PaymentService.PaymentServiceClient _paymentServiceClient;
+  private readonly ILogger<PaymentController> _logger;
 
-  public PaymentController(IConfiguration configuration)
+  public PaymentController(PaymentService.PaymentServiceClient paymentServiceClient, ILogger<PaymentController> logger)
   {
-    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ProductEngineGrpcConnection"));
-    var client = new PaymentService.PaymentServiceClient(channel);
-    _grpcClient = client;
+    _paymentServiceClient = paymentServiceClient;
+    _logger = logger;
   }
 
   [HttpPost("{bank_account_id}/deposit")]
@@ -38,7 +37,7 @@ public class PaymentController : ControllerBase
       IdempotencyKey = idempotencyKey,
       Amount = DecimalValueConverter.ToDecimalValue(body.Amount)
     };
-    var response = await _grpcClient.DepositAsync(request, metadata);
+    var response = await _paymentServiceClient.DepositAsync(request, metadata);
 
     return Ok(response);
   }
@@ -54,7 +53,6 @@ public class PaymentController : ControllerBase
       { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() },
     };
 
-
     var request = new WithdrawRequest
     {
       IdempotencyKey = idempotencyKey,
@@ -62,13 +60,13 @@ public class PaymentController : ControllerBase
       BankAccountId = bank_account_id,
       Amount = DecimalValueConverter.ToDecimalValue(body.Amount)
     };
-    var response = await _grpcClient.WithdrawAsync(request, metadata);
+    var response = await _paymentServiceClient.WithdrawAsync(request, metadata);
 
     return Ok(response);
   }
 
-  [HttpGet("{bank_account_id}/credit")]
-  public async Task<ActionResult<PayCreditResponse>> GetPayments(string bank_account_id)
+  [HttpPost("{agreement_id}/credit")]
+  public async Task<ActionResult<PayCreditResponse>> PayCredit(string agreement_id)
   {
     var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
     var clientId = HttpContext.Items["UserId"].ToString();
@@ -78,13 +76,13 @@ public class PaymentController : ControllerBase
       { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() },
     };
 
-
     var request = new PayCreditRequest
     {
       IdempotencyKey = idempotencyKey,
-      ClientId = clientId
+      ClientId = clientId,
+      AgreementId = agreement_id
     };
-    var response = await _grpcClient.PayCreditAsync(request, metadata);
+    var response = await _paymentServiceClient.PayCreditAsync(request, metadata);
 
     return Ok(response);
   }

@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package WolfBankGateway.Protos.application;
+package credit.v1;
+option go_package = "pkg/grpc/credit";
+option csharp_namespace = "WolfBankGateway.Protos.Services";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-
-option csharp_namespace = "WolfBankGateway.Protos.Services";
 
 enum ApplicationStatus {
     NEW = 0;
@@ -36,10 +36,10 @@ message CreateApplicationRequest {
 }
 
 message UpdateApplicationRequest {
-  string id = 1;
-  Decimal amount = 2;
-  uint32 term = 3;
-  Decimal interest = 4;
+    string id = 1;
+    Decimal amount = 2;
+    uint32 term = 3;
+    Decimal interest = 4;
 }
 
 message GetApplicationRequest {

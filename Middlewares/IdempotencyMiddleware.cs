@@ -39,8 +39,12 @@ namespace WolfBankGateway.Middlewares
         return;
       }
 
-      await db.StringSetAsync(idempotencyKey, idempotencyKey, TimeSpan.FromDays(1));
       await _next(context);
+
+      if (context.Response.StatusCode > 200 && context.Response.StatusCode < 300)
+      {
+        await db.StringSetAsync(idempotencyKey, idempotencyKey, TimeSpan.FromDays(1));
+      }
     }
   }
 }

@@ -1,12 +1,13 @@
 syntax = "proto3";
 
-package WolfBankGateway.Protos.credit;
+package com.bank.wolf.application.v1.credit;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-import "Protos/common.proto";
+import "Protos/General.proto";
 
+option java_multiple_files = true;
 option csharp_namespace = "WolfBankGateway.Protos.Services";
 
 service CreditService {
@@ -24,10 +25,10 @@ message GetCreditResponse {
   string agreement_id = 1;
   string product_code = 2;
   string client_id = 3;
-  WolfBankGateway.Protos.common.DecimalValue interest = 4;
+  com.bank.wolf.application.v1.common.DecimalValue interest = 4;
   int32 term = 5;
-  WolfBankGateway.Protos.common.DecimalValue principal_amount = 6;
-  WolfBankGateway.Protos.common.DecimalValue origination_amount = 7;
+  com.bank.wolf.application.v1.common.DecimalValue principal_amount = 6;
+  com.bank.wolf.application.v1.common.DecimalValue origination_amount = 7;
   AgreementStatus status = 8;
   google.protobuf.Timestamp disbursement_date = 9;
   google.protobuf.Timestamp next_payment_date = 10;
@@ -63,9 +64,9 @@ message GetPaymentResponse {
 message SchedulePayment {
   SchedulePaymentStatus status = 1;
   google.protobuf.Timestamp payment_date = 2;
-  WolfBankGateway.Protos.common.DecimalValue period_payment = 3;
-  WolfBankGateway.Protos.common.DecimalValue interest_payment = 4;
-  WolfBankGateway.Protos.common.DecimalValue principal_payment = 5;
+  com.bank.wolf.application.v1.common.DecimalValue period_payment = 3;
+  com.bank.wolf.application.v1.common.DecimalValue interest_payment = 4;
+  com.bank.wolf.application.v1.common.DecimalValue principal_payment = 5;
   int32 period_number = 6;
 }
 

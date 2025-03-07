@@ -16,7 +16,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
     <Protobuf Include="Protos\application.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\bank_account.proto" GrpcServices="Client" />
-    <Protobuf Include="Protos\common.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\General.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\credit.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\payment_service.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\product.proto" GrpcServices="Client" />

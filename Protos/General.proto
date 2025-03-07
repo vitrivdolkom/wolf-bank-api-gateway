@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package com.bank.wolf.application.v1.common;
+
+option java_multiple_files = true;
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+// value = unscaled * 10^(-scale)
+message DecimalValue {
+  int64 unscaled = 1;
+  int32 scale = 2;
+}

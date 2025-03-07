@@ -9,13 +9,11 @@ namespace WolfBankGateway.Controllers;
 [ApiController]
 public class ApplicationController : ControllerBase
 {
-  private readonly ApplicationService.ApplicationServiceClient _grpcClient;
+  private readonly ApplicationService.ApplicationServiceClient _applicationServiceClient;
 
-  public ApplicationController(IConfiguration configuration)
+  public ApplicationController(ApplicationService.ApplicationServiceClient applicationServiceClient)
   {
-    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ApplicationsGrpcConnection"));
-    var client = new ApplicationService.ApplicationServiceClient(channel);
-    _grpcClient = client;
+    _applicationServiceClient = applicationServiceClient;
   }
 
   [HttpGet("{id}")]
@@ -27,7 +25,7 @@ public class ApplicationController : ControllerBase
     };
 
     var request = new GetApplicationRequest { Id = id };
-    var response = await _grpcClient.GetAsync(request, metadata);
+    var response = await _applicationServiceClient.GetAsync(request, metadata);
 
     return Ok(response);
   }
@@ -41,7 +39,7 @@ public class ApplicationController : ControllerBase
       { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() }
     };
 
-    var response = await _grpcClient.CreateAsync(request, metadata);
+    var response = await _applicationServiceClient.CreateAsync(request, metadata);
 
     return Ok(response);
   }
@@ -55,7 +53,7 @@ public class ApplicationController : ControllerBase
       { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() }
     };
 
-    var response = await _grpcClient.UpdateAsync(request, metadata);
+    var response = await _applicationServiceClient.UpdateAsync(request, metadata);
 
     return Ok(response);
   }
@@ -69,7 +67,7 @@ public class ApplicationController : ControllerBase
     };
 
     var request = new DeleteApplicationRequest { Id = id };
-    await _grpcClient.DeleteAsync(request, metadata);
+    await _applicationServiceClient.DeleteAsync(request, metadata);
 
     return NoContent();
   }
@@ -88,7 +86,7 @@ public class ApplicationController : ControllerBase
       PageSize = pageSize,
     };
     request.Status.AddRange(status);
-    var response = await _grpcClient.ListAsync(request, metadata);
+    var response = await _applicationServiceClient.ListAsync(request, metadata);
 
     return Ok(response);
   }

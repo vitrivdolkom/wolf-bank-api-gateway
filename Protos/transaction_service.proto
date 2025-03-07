@@ -1,20 +1,17 @@
 syntax = "proto3";
 
-package WolfBankGateway.Protos.transaction_service;
+package com.bank.wolf.application.v1.transaction_service;
 
-import "Protos/common.proto";
+import "Protos/General.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
-import "google/api/annotations.proto";
+
 
 option csharp_namespace = "WolfBankGateway.Protos.Services";
 
+
 service TransactionService {
-  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse) {
-    option (google.api.http) = {
-      get: "/core/{bank_account_id}/history"
-    };
-  };
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse);
 }
 
 message GetHistoryRequest {
@@ -33,7 +30,7 @@ message Transaction {
   google.protobuf.StringValue from_bank_account_id = 2;
   google.protobuf.StringValue to_bank_account_id = 3;
   TransactionType type = 4;
-  WolfBankGateway.Protos.common.DecimalValue amount = 5;
+  com.bank.wolf.application.v1.common.DecimalValue amount = 5;
   string description = 6;
   google.protobuf.Timestamp created_at = 7;
 }

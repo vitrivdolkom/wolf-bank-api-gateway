@@ -9,13 +9,13 @@ namespace WolfBankGateway.Controllers;
 [ApiController]
 public class ProductController : ControllerBase
 {
-  private readonly ProductService.ProductServiceClient _grpcClient;
+  private readonly ProductService.ProductServiceClient _productServiceClient;
+  private readonly ILogger<ProductController> _logger;
 
-  public ProductController(IConfiguration configuration)
+  public ProductController(ProductService.ProductServiceClient productServiceClient, ILogger<ProductController> logger)
   {
-    using var channel = GrpcChannel.ForAddress(configuration.GetConnectionString("ProductEngineGrpcConnection"));
-    var client = new ProductService.ProductServiceClient(channel);
-    _grpcClient = client;
+    _productServiceClient = productServiceClient;
+    _logger = logger;
   }
 
   [HttpPost("")]
@@ -36,7 +36,7 @@ public class ProductController : ControllerBase
       ClientId = clientId,
       Code = body.Code
     };
-    await _grpcClient.CreateAsync(request, metadata);
+    await _productServiceClient.CreateAsync(request, metadata);
 
     return NoContent();
   }
@@ -51,7 +51,7 @@ public class ProductController : ControllerBase
     };
 
     var request = new GetProductRequest { ClientId = clientId, Code = code };
-    var response = await _grpcClient.GetAsync(request, metadata);
+    var response = await _productServiceClient.GetAsync(request, metadata);
 
     return Ok(response);
   }
@@ -64,7 +64,7 @@ public class ProductController : ControllerBase
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
     };
 
-    var response = await _grpcClient.CalculateAsync(body, metadata);
+    var response = await _productServiceClient.CalculateAsync(body, metadata);
 
     return Ok(response);
   }
@@ -84,7 +84,7 @@ public class ProductController : ControllerBase
       Offset = offset ?? 0,
       Limit = limit ?? 10
     };
-    var response = await _grpcClient.GetAllAsync(request, metadata);
+    var response = await _productServiceClient.GetAllAsync(request, metadata);
 
     return Ok(response.Products);
   }
