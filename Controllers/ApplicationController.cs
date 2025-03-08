@@ -1,5 +1,6 @@
 using Grpc.Core;
 using Grpc.Net.Client;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Protos.Services;
 
@@ -73,8 +74,10 @@ public class ApplicationController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<ActionResult<ListApplicationResponse>> ListApplications([FromQuery] uint page, [FromQuery] uint pageSize, [FromQuery] ApplicationStatus[] status)
+  public async Task<ActionResult<ListApplicationResponse>> ListApplications([FromQuery] uint page, [FromQuery] uint pageSize, [FromQuery] ApplicationStatus[] status, [FromQuery] Guid? userId)
   {
+    // TODO add clientId
+    // var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"].ToString();
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },

@@ -1,4 +1,5 @@
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Converters;
 using WolfBankGateway.Models;
@@ -23,7 +24,7 @@ public class PaymentController : ControllerBase
   public async Task<ActionResult<DepositResponse>> Deposit(string bank_account_id, [FromBody] PaymentModel body)
   {
     var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
-    var clientId = HttpContext.Items["UserId"].ToString();
+    var clientId = HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
@@ -46,7 +47,7 @@ public class PaymentController : ControllerBase
   public async Task<ActionResult<WithdrawResponse>> Withdraw(string bank_account_id, [FromBody] PaymentModel body)
   {
     var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
-    var clientId = HttpContext.Items["UserId"].ToString();
+    var clientId = HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
@@ -69,7 +70,7 @@ public class PaymentController : ControllerBase
   public async Task<ActionResult<PayCreditResponse>> PayCredit(string agreement_id)
   {
     var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
-    var clientId = HttpContext.Items["UserId"].ToString();
+    var clientId = HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },

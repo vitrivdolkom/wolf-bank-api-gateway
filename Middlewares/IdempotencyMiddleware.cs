@@ -16,17 +16,10 @@ namespace WolfBankGateway.Middlewares
 
     public async Task InvokeAsync(HttpContext context)
     {
-      if (!NonIdempotentRequestMethods.Contains(context.Request.Method))
+      string? idempotencyKey = context.Request.Headers["Idempotency-Key"].FirstOrDefault();
+      if (!NonIdempotentRequestMethods.Contains(context.Request.Method) || string.IsNullOrEmpty(idempotencyKey))
       {
         await _next(context);
-        return;
-      }
-
-      string? idempotencyKey = context.Request.Headers["Idempotency-Key"].FirstOrDefault();
-      if (string.IsNullOrEmpty(idempotencyKey))
-      {
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        await context.Response.WriteAsync("Idempotency-Key header is required.");
         return;
       }
 

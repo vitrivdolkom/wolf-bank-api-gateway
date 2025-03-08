@@ -54,6 +54,7 @@ public class GrpcExceptionHandlingMiddleware
 
   private static int MapGrpcStatusToHttpStatus(StatusCode grpcStatusCode)
   {
+
     return grpcStatusCode switch
     {
       StatusCode.OK => (int)HttpStatusCode.OK,

@@ -1,5 +1,6 @@
 using Grpc.Core;
 using Grpc.Net.Client;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Protos.Services;
 
@@ -19,7 +20,7 @@ public class CreditController : ControllerBase
   [HttpGet("{agreementId}")]
   public async Task<ActionResult<GetCreditResponse>> GetCredit(string agreementId)
   {
-    var clientId = HttpContext.Items["UserId"].ToString();
+    var clientId = HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
@@ -35,10 +36,10 @@ public class CreditController : ControllerBase
     return Ok(response);
   }
 
-  [HttpGet("")]
-  public async Task<ActionResult<List<GetCreditResponse>>> GetAllCredits([FromQuery] long? offset, [FromQuery] long? limit)
+  [HttpGet]
+  public async Task<ActionResult<List<GetCreditResponse>>> GetAllCredits([FromQuery] long? offset, [FromQuery] long? limit, [FromQuery] Guid? userId)
   {
-    var clientId = HttpContext.Items["UserId"].ToString();
+    var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"].ToString();
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
@@ -58,8 +59,7 @@ public class CreditController : ControllerBase
   [HttpGet("{agreementId}/payments")]
   public async Task<ActionResult<GetPaymentResponse>> GetPayments(string agreementId)
   {
-    // TODO remove client id when auth service is done
-    var clientId = HttpContext.Items["UserId"].ToString();
+    var clientId = HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },

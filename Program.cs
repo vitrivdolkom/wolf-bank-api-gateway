@@ -1,7 +1,6 @@
 using StackExchange.Redis;
 using Asp.Versioning;
 using WolfBankGateway.Middlewares;
-using Grpc.Net.Client;
 using WolfBankGateway.Protos.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,38 +24,52 @@ var redisConnectionString = builder.Configuration.GetConnectionString("RedisConn
 var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);
 builder.Services.AddSingleton<IConnectionMultiplexer>(redisConnection);
 
+var publicUserGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("PublicUserGrpcConnection");
+builder.Services.AddGrpcClient<PublicUserService.PublicUserServiceClient>(options =>
+{
+  options.Address = new Uri(publicUserGrpcConnectionConnectionString);
+});
+
+var internalUserGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("InternalUserGrpcConnection");
+builder.Services.AddGrpcClient<InternalUserService.InternalUserServiceClient>(options =>
+{
+  options.Address = new Uri(internalUserGrpcConnectionConnectionString);
+});
+
 var productEngineGrpcConnectionString = builder.Configuration.GetConnectionString("ProductEngineGrpcConnection");
-builder.Services.AddSingleton(GrpcChannel.ForAddress(productEngineGrpcConnectionString));
-builder.Services.AddSingleton(provider =>
+builder.Services.AddGrpcClient<BankAccountService.BankAccountServiceClient>(options =>
 {
-  var channel = provider.GetRequiredService<GrpcChannel>();
-  return new BankAccountService.BankAccountServiceClient(channel);
+  options.Address = new Uri(productEngineGrpcConnectionString);
 });
-builder.Services.AddSingleton(provider =>
+builder.Services.AddGrpcClient<TransactionService.TransactionServiceClient>(options =>
 {
-  var channel = provider.GetRequiredService<GrpcChannel>();
-  return new TransactionService.TransactionServiceClient(channel);
+  options.Address = new Uri(productEngineGrpcConnectionString);
 });
-builder.Services.AddSingleton(provider =>
+builder.Services.AddGrpcClient<ProductService.ProductServiceClient>(options =>
 {
-  var channel = provider.GetRequiredService<GrpcChannel>();
-  return new ProductService.ProductServiceClient(channel);
+  options.Address = new Uri(productEngineGrpcConnectionString);
 });
-builder.Services.AddSingleton(provider =>
+builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
 {
-  var channel = provider.GetRequiredService<GrpcChannel>();
-  return new ApplicationService.ApplicationServiceClient(channel);
+  options.Address = new Uri(productEngineGrpcConnectionString);
 });
-builder.Services.AddSingleton(provider =>
+builder.Services.AddGrpcClient<PaymentService.PaymentServiceClient>(options =>
 {
-  var channel = provider.GetRequiredService<GrpcChannel>();
-  return new CreditService.CreditServiceClient(channel);
+  options.Address = new Uri(productEngineGrpcConnectionString);
 });
-builder.Services.AddSingleton(provider =>
+
+builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
 {
-  var channel = provider.GetRequiredService<GrpcChannel>();
-  return new PaymentService.PaymentServiceClient(channel);
+  options.Address = new Uri(productEngineGrpcConnectionString);
 });
+
+// TODO add applications grpc
+// var applicationsGrpcConnectionString = builder.Configuration.GetConnectionString("ApplicationsGrpcConnection");
+
+// builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
+// {
+//   options.Address = new Uri(applicationsGrpcConnectionString);
+// });
 
 var app = builder.Build();
 
@@ -68,8 +81,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
-app.UseMiddleware<IdempotencyMiddleware>();
 app.UseMiddleware<AuthMiddleware>();
+app.UseMiddleware<IdempotencyMiddleware>();
 app.UseMiddleware<RedisCacheMiddleware>();
 app.UseMiddleware<GrpcExceptionHandlingMiddleware>();
 
