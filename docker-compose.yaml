@@ -1,12 +1,16 @@
 services:
   api-gateway:
     build: .
+    expose:
+      - 5188
     ports:
-      - "5188:5188"
+      - "5188:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__RedisConnection=localhost:6380
-      - ConnectionStrings__ProductEngineGrpcConnection=http://localhost:9091
+      - ConnectionStrings__RedisConnection=localhost:6380,abortConnect=false
+      - ConnectionStrings__ProductEngineGrpcConnection=http://host.docker.internal:9091
+      - ConnectionStrings__PublicUserGrpcConnection=http://host.docker.internal:50054
+      - ConnectionStrings__InternalUserGrpcConnection=http://host.docker.internal:50055
     depends_on:
       - redis
     networks:

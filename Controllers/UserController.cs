@@ -63,4 +63,18 @@ public class UserController : ControllerBase
 
     return Ok(response);
   }
+
+  [HttpGet("profile")]
+  public async Task<ActionResult<GetProfileResponse>> GetProfile()
+  {
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
+    var request = new GetProfileRequest();
+    var response = await _internalUserServiceClient.GetProfileAsync(request, metadata);
+
+    return Ok(response);
+  }
 }

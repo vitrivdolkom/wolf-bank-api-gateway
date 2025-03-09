@@ -13,7 +13,7 @@ namespace WolfBankGateway.Middlewares
   {
     // TODO add requests to cache
     private static readonly string[] CacheKeysToHandle = [
-      GetCacheKey("GET", "/core/todo")
+      GetCacheKey("GET", "WolfBankGateway.Controllers.ApplicationController.GetApplication")
     ];
     private readonly RequestDelegate _next;
     private readonly IConnectionMultiplexer _redis;
@@ -28,7 +28,9 @@ namespace WolfBankGateway.Middlewares
 
     public async Task InvokeAsync(HttpContext context)
     {
-      var cacheKey = GetCacheKey(context.Request.Method, context.Request.Path);
+      var endpoint = context.GetEndpoint();
+      var cacheKey = GetCacheKey(context.Request.Method, endpoint?.DisplayName ?? "");
+
       if (!CacheKeysToHandle.Contains(cacheKey))
       {
         await _next(context);
@@ -74,6 +76,6 @@ namespace WolfBankGateway.Middlewares
       }
     }
 
-    private static string GetCacheKey(string method, string path) => method + path;
+    private static string GetCacheKey(string method, string endpointDisplayName) => method + endpointDisplayName;
   }
 }
