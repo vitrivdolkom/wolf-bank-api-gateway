@@ -1,18 +1,19 @@
 syntax = "proto3";
 
 package credit.v1;
-option go_package = "pkg/grpc/credit";
 option csharp_namespace = "WolfBankGateway.Protos.Services";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
 enum ApplicationStatus {
-    NEW = 0;
-    SCORING = 1;
-    EMPLOYMENT_CHECK = 2;
-    APPROVED = 3;
-    REJECTED = 4;
+    DRAFT = 0;
+    APPLICATION_CREATED = 1;
+    APPLICATION_AGREEMENT_CREATED = 2;
+    SCORING = 3;
+    EMPLOYMENT_CHECK = 4;
+    APPROVED = 5;
+    REJECTED = 6;
 }
 
 service ApplicationService {
@@ -30,16 +31,28 @@ message Decimal {
 }
 
 message CreateApplicationRequest {
-  Decimal amount = 1;
-  uint32 term = 2;
-  Decimal interest = 3;
+    string user_id = 1;
+    Decimal disbursement_amount = 2;
+    Decimal origination_amount = 3;
+    string to_bank_account_id = 4;
+    uint32 term = 5;
+    Decimal interest = 6;
+    string product_code = 7;
+    string product_version = 8;
+    ApplicationStatus status = 9;
 }
 
 message UpdateApplicationRequest {
     string id = 1;
-    Decimal amount = 2;
-    uint32 term = 3;
-    Decimal interest = 4;
+    string user_id = 2;
+    Decimal disbursement_amount = 3;
+    Decimal origination_amount = 4;
+    string to_bank_account_id = 5;
+    uint32 term = 6;
+    Decimal interest = 7;
+    string product_code = 8;
+    string product_version = 9;
+    ApplicationStatus status = 10;
 }
 
 message GetApplicationRequest {
@@ -54,16 +67,22 @@ message ListApplicationRequest {
     repeated ApplicationStatus status = 1;
     uint32 page = 2;
     uint32 page_size = 3;
+    string user_id = 4;
 }
 
 message ApplicationResponse {
     string id = 1;
-    Decimal amount = 2;
-    uint32 term = 3;
-    Decimal interest = 4;
-    ApplicationStatus status = 5;
-    google.protobuf.Timestamp created_at = 6;
-    google.protobuf.Timestamp updated_at = 7;
+    string user_id = 2;
+    Decimal disbursement_amount = 3;
+    Decimal origination_amount = 4;
+    string to_bank_account_id = 5;
+    uint32 term = 6;
+    Decimal interest = 7;
+    string product_code = 8;
+    string product_version = 9;
+    ApplicationStatus status = 10;
+    google.protobuf.Timestamp created_at = 11;
+    google.protobuf.Timestamp updated_at = 12;
 }
 
 message ListApplicationResponse {

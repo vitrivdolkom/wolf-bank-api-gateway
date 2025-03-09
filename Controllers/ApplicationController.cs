@@ -32,12 +32,26 @@ public class ApplicationController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<ActionResult<ApplicationResponse>> CreateApplication([FromBody] CreateApplicationRequest request)
+  public async Task<ActionResult<ApplicationResponse>> CreateApplication([FromBody] CreateApplicationRequest body)
   {
+    var userId = HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
       { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() }
+    };
+
+    var request = new CreateApplicationRequest
+    {
+      DisbursementAmount = body.DisbursementAmount,
+      OriginationAmount = body.OriginationAmount,
+      ProductCode = body.ProductCode,
+      ProductVersion = body.ProductVersion,
+      Status = body.Status,
+      Term = body.Term,
+      ToBankAccountId = body.ToBankAccountId,
+      Interest = body.Interest,
+      UserId = userId
     };
 
     var response = await _applicationServiceClient.CreateAsync(request, metadata);
@@ -76,8 +90,6 @@ public class ApplicationController : ControllerBase
   [HttpGet]
   public async Task<ActionResult<ListApplicationResponse>> ListApplications([FromQuery] uint page, [FromQuery] uint pageSize, [FromQuery] ApplicationStatus[] status, [FromQuery] Guid? userId)
   {
-    // TODO add clientId
-    // var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"].ToString();
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
@@ -87,6 +99,7 @@ public class ApplicationController : ControllerBase
     {
       Page = page,
       PageSize = pageSize,
+      UserId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"].ToString()
     };
     request.Status.AddRange(status);
     var response = await _applicationServiceClient.ListAsync(request, metadata);

@@ -67,7 +67,6 @@ public class BankAccountController : ControllerBase
 
   // GET /api/bank-accounts
   [HttpGet]
-
   public async Task<ActionResult<List<BankAccountDto>>> GetAllBankAccounts([FromQuery] long? offset, [FromQuery] long? limit, [FromQuery] Guid? userId)
   {
     var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"]?.ToString() ?? "";
@@ -80,10 +79,10 @@ public class BankAccountController : ControllerBase
     {
       ClientId = clientId,
       Offset = offset ?? 0,
-      Limit = limit ?? 10
+      Limit = limit ?? 100
     };
     var response = await _bankAccountClient.GetAllAsync(request, metadata);
-    _logger.LogInformation("response {response}", response);
+
     return Ok(response.BankAccounts);
   }
 
@@ -124,7 +123,7 @@ public class BankAccountController : ControllerBase
       BankAccountId = bank_account_id,
       ClientId = clientId,
       Offset = offset ?? 0,
-      Limit = limit ?? 10
+      Limit = limit ?? 100
     };
     _logger.LogInformation("Get history request: {Request}", request);
     var response = await _transactionClient.GetHistoryAsync(request, metadata);

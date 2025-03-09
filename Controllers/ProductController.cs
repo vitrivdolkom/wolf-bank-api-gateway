@@ -97,7 +97,7 @@ public class ProductController : ControllerBase
     {
       ClientId = clientId,
       Offset = offset ?? 0,
-      Limit = limit ?? 10
+      Limit = limit ?? 100
     };
     var response = await _productServiceClient.GetAllAsync(request, metadata);
 

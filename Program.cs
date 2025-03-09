@@ -44,6 +44,12 @@ try
     options.Address = new Uri(internalUserGrpcConnectionConnectionString);
   });
 
+  var creditOriginationGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("CreditOriginationGrpcConnection");
+  builder.Services.AddGrpcClient<ApplicationService.ApplicationServiceClient>(options =>
+  {
+    options.Address = new Uri(creditOriginationGrpcConnectionConnectionString);
+  });
+
   var productEngineGrpcConnectionString = builder.Configuration.GetConnectionString("ProductEngineGrpcConnection");
   builder.Services.AddGrpcClient<BankAccountService.BankAccountServiceClient>(options =>
   {
@@ -70,14 +76,6 @@ try
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
   });
-
-  // TODO add applications grpc
-  // var applicationsGrpcConnectionString = builder.Configuration.GetConnectionString("ApplicationsGrpcConnection");
-
-  // builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
-  // {
-  //   options.Address = new Uri(applicationsGrpcConnectionString);
-  // });
 
   var app = builder.Build();
 

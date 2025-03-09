@@ -39,7 +39,7 @@ public class CreditController : ControllerBase
   [HttpGet]
   public async Task<ActionResult<List<GetCreditResponse>>> GetAllCredits([FromQuery] long? offset, [FromQuery] long? limit, [FromQuery] Guid? userId)
   {
-    var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"].ToString();
+    var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
@@ -49,7 +49,7 @@ public class CreditController : ControllerBase
     {
       ClientId = clientId,
       Offset = offset ?? 0,
-      Limit = limit ?? 10
+      Limit = limit ?? 100
     };
     var response = await _creditServiceClient.GetAllAsync(request, metadata);
 
@@ -71,7 +71,7 @@ public class CreditController : ControllerBase
       AgreementId = agreementId
     };
     var response = await _creditServiceClient.GetPaymentsAsync(request, metadata);
-    // todo check if we need full response
+
     return Ok(response);
   }
 }

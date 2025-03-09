@@ -18,7 +18,7 @@
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
-    <Protobuf Include="Protos\application.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\credit_origination.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\auth.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\bank_account.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\General.proto" GrpcServices="Client" />
