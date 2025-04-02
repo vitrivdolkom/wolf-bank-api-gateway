@@ -22,6 +22,7 @@
     <Protobuf Include="Protos\auth.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\bank_account.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\General.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\credit_scoring.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\credit.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\payment_service.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\product.proto" GrpcServices="Client" />

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.bank.wolf.application.v2.credit_service;
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+service ScoringService {
+  rpc GetRate(GetCreditRateRequest) returns (GetCreditRateResponse);
+}
+
+message GetCreditRateRequest {
+  string client_id = 1;
+}
+
+message GetCreditRateResponse {
+  int32 percent = 1;
+}

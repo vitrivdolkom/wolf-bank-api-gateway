@@ -11,10 +11,12 @@ namespace WolfBankGateway.Controllers;
 public class CreditController : ControllerBase
 {
   private readonly CreditService.CreditServiceClient _creditServiceClient;
+  private readonly ScoringService.ScoringServiceClient _scoringServiceClient;
 
-  public CreditController(CreditService.CreditServiceClient creditServiceClient)
+  public CreditController(CreditService.CreditServiceClient creditServiceClient, ScoringService.ScoringServiceClient scoringServiceClient)
   {
     _creditServiceClient = creditServiceClient;
+    _scoringServiceClient = scoringServiceClient;
   }
 
   [HttpGet("{agreementId}")]
@@ -71,6 +73,24 @@ public class CreditController : ControllerBase
       AgreementId = agreementId
     };
     var response = await _creditServiceClient.GetPaymentsAsync(request, metadata);
+
+    return Ok(response);
+  }
+
+  [HttpGet("rate")]
+  public async Task<ActionResult<GetCreditRateResponse>> GetRate([FromQuery] Guid? userId)
+  {
+    var clientId = HttpContext.Items["UserId"]?.ToString() ?? "";
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
+    };
+
+    var request = new GetCreditRateRequest
+    {
+      ClientId = userId.HasValue ? userId.Value.ToString() : clientId,
+    };
+    var response = await _scoringServiceClient.GetRateAsync(request, metadata);
 
     return Ok(response);
   }

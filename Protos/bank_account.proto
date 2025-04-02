@@ -14,6 +14,7 @@ service BankAccountService {
   rpc Create(CreateBankAccountRequest) returns (BankAccountDto);
   rpc Close(CloseBankAccountRequest) returns (google.protobuf.Empty);
   rpc GetAll(GetAllBankAccountsRequest) returns (GetAllBankAccountsResponse);
+  rpc GetAllAccounts(GetAllBankAccountsRequest) returns (GetAllBankAccountsResponse);
   rpc Get(GetBankAccountRequest) returns (BankAccountDto);
 }
 

@@ -59,7 +59,8 @@ public class PaymentController : ControllerBase
       IdempotencyKey = idempotencyKey,
       ClientId = clientId,
       BankAccountId = bank_account_id,
-      Amount = DecimalValueConverter.ToDecimalValue(body.Amount)
+      Amount = DecimalValueConverter.ToDecimalValue(body.Amount),
+      ToBankAccountId = body.ToBankAccountId
     };
     var response = await _paymentServiceClient.WithdrawAsync(request, metadata);
 

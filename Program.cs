@@ -50,6 +50,12 @@ try
     options.Address = new Uri(creditOriginationGrpcConnectionConnectionString);
   });
 
+  var scoringGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("ScoringGrpcConnection");
+  builder.Services.AddGrpcClient<ScoringService.ScoringServiceClient>(options =>
+  {
+    options.Address = new Uri(scoringGrpcConnectionConnectionString);
+  });
+
   var productEngineGrpcConnectionString = builder.Configuration.GetConnectionString("ProductEngineGrpcConnection");
   builder.Services.AddGrpcClient<BankAccountService.BankAccountServiceClient>(options =>
   {

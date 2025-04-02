@@ -67,7 +67,7 @@ public class BankAccountController : ControllerBase
 
   // GET /api/bank-accounts
   [HttpGet]
-  public async Task<ActionResult<List<BankAccountDto>>> GetAllBankAccounts([FromQuery] long? offset, [FromQuery] long? limit, [FromQuery] Guid? userId)
+  public async Task<ActionResult<List<BankAccountDto>>> GetMyBankAccounts([FromQuery] long? offset, [FromQuery] long? limit, [FromQuery] Guid? userId)
   {
     var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"]?.ToString() ?? "";
     var metadata = new Metadata
@@ -82,6 +82,26 @@ public class BankAccountController : ControllerBase
       Limit = limit ?? 100
     };
     var response = await _bankAccountClient.GetAllAsync(request, metadata);
+
+    return Ok(response.BankAccounts);
+  }
+
+  [HttpGet("all")]
+  public async Task<ActionResult<List<BankAccountDto>>> GetAllBankAccounts([FromQuery] long? offset, [FromQuery] long? limit, [FromQuery] Guid? userId)
+  {
+    var clientId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"]?.ToString() ?? "";
+    var metadata = new Metadata
+    {
+      { "Authorization", Request.Headers["Authorization"].FirstOrDefault() ?? "" },
+    };
+    _logger.LogInformation("metadata {metadata}", metadata);
+    var request = new GetAllBankAccountsRequest
+    {
+      ClientId = clientId,
+      Offset = offset ?? 0,
+      Limit = limit ?? 100
+    };
+    var response = await _bankAccountClient.GetAllAccountsAsync(request, metadata);
 
     return Ok(response.BankAccounts);
   }
