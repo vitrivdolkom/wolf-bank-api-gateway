@@ -1,6 +1,7 @@
+using System.Text;
 using Grpc.Core;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -11,19 +12,26 @@ public class AuthController : ControllerBase
 {
   private readonly PublicUserService.PublicUserServiceClient _publicUserServiceClient;
   private readonly ILogger<AuthController> _logger;
+  private readonly HttpClient _httpClient;
 
-  public AuthController(PublicUserService.PublicUserServiceClient publicUserServiceClient, ILogger<AuthController> logger)
+  public AuthController(PublicUserService.PublicUserServiceClient publicUserServiceClient, ILogger<AuthController> logger, HttpClient httpClient)
   {
     _publicUserServiceClient = publicUserServiceClient;
     _logger = logger;
+    _httpClient = httpClient;
   }
 
-  [HttpPost("login")]
-  public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+  [HttpPost("token")]
+  public async Task<ActionResult<TokenResponse>> Token([FromBody] TokenRequest body)
   {
-    var response = await _publicUserServiceClient.LoginAsync(request);
+    var response = await _httpClient.PostAsync("http://localhost:8082/v1/token",
+      JsonContent.Create(body)
+    );
+    var content = await response.Content.ReadFromJsonAsync<TokenResponse>();
+    _logger.LogInformation("#content {content}", content);
+    response.EnsureSuccessStatusCode();
 
-    return Ok(response);
+    return Ok(content);
   }
 
   [HttpPost("register")]
@@ -33,6 +41,7 @@ public class AuthController : ControllerBase
 
     return Ok(response);
   }
+
 
   [HttpPost("logout")]
 

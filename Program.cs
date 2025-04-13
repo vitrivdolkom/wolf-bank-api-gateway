@@ -27,6 +27,7 @@ try
   builder.Services.AddControllers();
   builder.Services.AddEndpointsApiExplorer();
   builder.Services.AddSwaggerGen();
+  builder.Services.AddHttpClient();
 
   var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
   var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);

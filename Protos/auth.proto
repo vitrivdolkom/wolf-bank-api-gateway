@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package users.v1;
 
+import "google/api/annotations.proto";
+
 option csharp_namespace = "WolfBankGateway.Protos.Services";
 
 enum Role {
@@ -11,8 +13,30 @@ enum Role {
 }
 
 service PublicUserService {
+    rpc RegisterClient(RegisterClientRequest) returns (RegisterClientResponse) {
+        option (google.api.http) = {
+            post: "/v1/clients/register"
+            body: "*"
+        };
+    };
+    rpc AuthorizeOAuth(AuthorizeOAuthRequest) returns (AuthorizeOAuthResponse) {
+        option (google.api.http) = {
+            get: "/v1/authorize"
+        };
+    };
+    rpc Token(TokenRequest) returns (TokenResponse) {
+        option (google.api.http) = {
+            post: "/v1/token"
+            body: "*"
+        };
+    };
+    rpc Login(LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+            post: "/v1/login"
+            body: "*"
+        };
+    };
     rpc Register(RegisterRequest) returns (RegisterResponse) {};
-    rpc Login(LoginRequest) returns (LoginResponse) {};
     rpc Logout(LogoutRequest) returns (LogoutResponse) {};
     rpc Revalidate(RevalidateRequest) returns (RevalidateResponse) {};
 }
@@ -25,6 +49,61 @@ service InternalUserService {
     rpc BanUser(BanUserRequest) returns (BanUserResponse) {};
     rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse) {};
     rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {};
+}
+
+message RegisterClientRequest {
+    string name = 1;
+    string redirect_uri = 2;
+}
+
+message RegisterClientResponse {
+    string client_id = 1;
+    string client_secret = 2;
+}
+
+message AuthorizeOAuthRequest {
+    string client_id = 1;
+    string redirect_uri = 2;
+    string response_type = 3;
+    string state = 4;
+}
+
+message AuthorizeOAuthResponse {
+    string redirect_uri = 1;
+    string message = 2;
+}
+
+message AuthorizeRequest {}
+
+message AuthorizeResponse {
+    bool is_valid = 1; 
+    string user_id = 2;
+    Role role = 3;
+    string message = 4;
+}
+
+message TokenRequest {
+    string grant_type = 1;
+    string code = 2;
+    string redirect_uri = 3;
+    string client_id = 4;
+    string client_secret = 5;
+}
+
+message TokenResponse {
+    string access_token = 1;
+    string token_type = 2;
+    int32 expires_in = 3;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string session_id = 1;
+    string message = 2;
 }
 
 message ListUsersRequest {
@@ -43,15 +122,6 @@ message User {
     string email = 2;
     Role role = 3;
 } 
-
-message AuthorizeRequest {}
-
-message AuthorizeResponse {
-    bool is_valid = 1; 
-    string user_id = 2;
-    Role role = 3;
-    string message = 4;
-}
 
 message LogoutRequest {}
 
@@ -75,16 +145,6 @@ message RegisterRequest {
 message RegisterResponse {
     string message = 1;
     string token = 2;
-}
-
-message LoginRequest {
-    string email = 1;
-    string password = 2;
-}
-
-message LoginResponse {
-    string token = 1;
-    string message = 2;
 }
 
 message GetProfileRequest {}
