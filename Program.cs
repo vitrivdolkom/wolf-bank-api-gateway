@@ -12,6 +12,7 @@ Log.Logger = new LoggerConfiguration()
 try
 {
   var builder = WebApplication.CreateBuilder(args);
+  builder.Host.UseSerilog();
 
   builder.Services.AddMvc();
   builder.Services.AddApiVersioning(options =>
@@ -84,6 +85,12 @@ try
     options.Address = new Uri(productEngineGrpcConnectionString);
   });
 
+  var userHttpConnectionString = builder.Configuration.GetConnectionString("UserHttpConnection");
+  builder.Services.AddHttpClient("User", httpClient =>
+  {
+    httpClient.BaseAddress = new Uri(userHttpConnectionString);
+  });
+
   var app = builder.Build();
 
   if (app.Environment.IsDevelopment())
@@ -92,6 +99,7 @@ try
     app.UseSwaggerUI();
   }
 
+  app.UseSerilogRequestLogging();
   app.MapControllers();
 
   app.UseMiddleware<AuthMiddleware>();

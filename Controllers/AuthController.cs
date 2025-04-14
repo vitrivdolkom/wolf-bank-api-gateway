@@ -12,23 +12,23 @@ public class AuthController : ControllerBase
 {
   private readonly PublicUserService.PublicUserServiceClient _publicUserServiceClient;
   private readonly ILogger<AuthController> _logger;
-  private readonly HttpClient _httpClient;
+  private readonly IHttpClientFactory _httpClientFactory;
 
-  public AuthController(PublicUserService.PublicUserServiceClient publicUserServiceClient, ILogger<AuthController> logger, HttpClient httpClient)
+
+  public AuthController(PublicUserService.PublicUserServiceClient publicUserServiceClient, ILogger<AuthController> logger, IHttpClientFactory httpClientFactory)
   {
     _publicUserServiceClient = publicUserServiceClient;
     _logger = logger;
-    _httpClient = httpClient;
+    _httpClientFactory = httpClientFactory;
   }
 
   [HttpPost("token")]
   public async Task<ActionResult<TokenResponse>> Token([FromBody] TokenRequest body)
   {
-    var response = await _httpClient.PostAsync("http://localhost:8082/v1/token",
-      JsonContent.Create(body)
-    );
+    var userHttpClient = _httpClientFactory.CreateClient("User");
+    var response = await userHttpClient.PostAsync("/v1/token", JsonContent.Create(body));
     var content = await response.Content.ReadFromJsonAsync<TokenResponse>();
-    _logger.LogInformation("#content {content}", content);
+
     response.EnsureSuccessStatusCode();
 
     return Ok(content);

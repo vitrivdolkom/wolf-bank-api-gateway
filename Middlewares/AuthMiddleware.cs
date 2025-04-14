@@ -11,14 +11,14 @@ namespace WolfBankGateway.Middlewares
     private readonly InternalUserService.InternalUserServiceClient _internalUserServiceClient;
     private readonly RequestDelegate _next;
     private readonly ILogger<AuthMiddleware> _logger;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger, InternalUserService.InternalUserServiceClient internalUserServiceClient, HttpClient httpClient)
+    public AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger, InternalUserService.InternalUserServiceClient internalUserServiceClient, IHttpClientFactory httpClientFactory)
     {
       _next = next;
       _logger = logger;
       _internalUserServiceClient = internalUserServiceClient;
-      _httpClient = httpClient;
+      _httpClientFactory = httpClientFactory;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -50,25 +50,19 @@ namespace WolfBankGateway.Middlewares
         }
       }
 
-      var url = QueryHelpers.AddQueryString("http://localhost:8082/v1/authorize", new Dictionary<string, string?>
+      var url = QueryHelpers.AddQueryString("/v1/authorize", new Dictionary<string, string?>
         {
             { "client_id", "wem7LcxWDUArXEm-0e4nsEjkwsroaXU_" },
             { "redirect_uri", "http://localhost:3000/"},
             { "response_type", "code" }
         });
-      var response = await _httpClient.GetAsync(url);
+
+      var userHttpClient = _httpClientFactory.CreateClient("User");
+      var response = await userHttpClient.GetAsync(url);
       var content = await response.Content.ReadAsStringAsync();
-      _logger.LogInformation("#content: {content}", content);
+
       if (content.Contains("http://localhost:8082/login"))
       {
-        context.Response.StatusCode = (int)response.StatusCode;
-        var redirectUrl = QueryHelpers.AddQueryString("http://localhost:8082/login", new Dictionary<string, string?>
-        {
-            { "client_id", "wem7LcxWDUArXEm-0e4nsEjkwsroaXU_" },
-            { "redirect_uri", "http://localhost:3000/"},
-            { "response_type", "code" }
-        });
-        _logger.LogInformation("#redirectUrl: {redirectUrl}", redirectUrl);
         context.Response.StatusCode = 401;
         return;
       }
