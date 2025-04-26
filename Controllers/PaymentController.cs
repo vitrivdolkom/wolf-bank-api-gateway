@@ -2,6 +2,7 @@ using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Converters;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Models;
 using WolfBankGateway.Protos.Services;
 
@@ -13,11 +14,13 @@ public class PaymentController : ControllerBase
 {
   private readonly PaymentService.PaymentServiceClient _paymentServiceClient;
   private readonly ILogger<PaymentController> _logger;
+  private readonly ResilienceInvoker _resilienceInvoker;
 
-  public PaymentController(PaymentService.PaymentServiceClient paymentServiceClient, ILogger<PaymentController> logger)
+  public PaymentController(PaymentService.PaymentServiceClient paymentServiceClient, ILogger<PaymentController> logger, ResilienceInvoker resilienceInvoker)
   {
     _paymentServiceClient = paymentServiceClient;
     _logger = logger;
+    _resilienceInvoker = resilienceInvoker;
   }
 
   [HttpPost("{bank_account_id}/deposit")]
@@ -38,7 +41,9 @@ public class PaymentController : ControllerBase
       IdempotencyKey = idempotencyKey,
       Amount = DecimalValueConverter.ToDecimalValue(body.Amount)
     };
-    var response = await _paymentServiceClient.DepositAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _paymentServiceClient.DepositAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -62,7 +67,9 @@ public class PaymentController : ControllerBase
       Amount = DecimalValueConverter.ToDecimalValue(body.Amount),
       ToBankAccountId = body.ToBankAccountId
     };
-    var response = await _paymentServiceClient.WithdrawAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _paymentServiceClient.WithdrawAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -84,7 +91,9 @@ public class PaymentController : ControllerBase
       ClientId = clientId,
       AgreementId = agreement_id
     };
-    var response = await _paymentServiceClient.PayCreditAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _paymentServiceClient.PayCreditAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }

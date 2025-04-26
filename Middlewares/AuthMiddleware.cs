@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using Grpc.Core;
 using Microsoft.AspNetCore.WebUtilities;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Middlewares
@@ -12,13 +13,15 @@ namespace WolfBankGateway.Middlewares
     private readonly RequestDelegate _next;
     private readonly ILogger<AuthMiddleware> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ResilienceInvoker _resilienceInvoker;
 
-    public AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger, InternalUserService.InternalUserServiceClient internalUserServiceClient, IHttpClientFactory httpClientFactory)
+    public AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger, InternalUserService.InternalUserServiceClient internalUserServiceClient, IHttpClientFactory httpClientFactory, ResilienceInvoker resilienceInvoker)
     {
       _next = next;
       _logger = logger;
       _internalUserServiceClient = internalUserServiceClient;
       _httpClientFactory = httpClientFactory;
+      _resilienceInvoker = resilienceInvoker;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -58,8 +61,16 @@ namespace WolfBankGateway.Middlewares
         });
 
       var userHttpClient = _httpClientFactory.CreateClient("User");
-      var response = await userHttpClient.GetAsync(url);
-      var content = await response.Content.ReadAsStringAsync();
+      var content = await _resilienceInvoker.ExecuteAsync(async () =>
+      {
+        var response = await userHttpClient.GetAsync(url);
+        if ((int)response.StatusCode >= 500 || response.StatusCode == HttpStatusCode.RequestTimeout)
+        {
+          throw new HttpRequestException($"Server error: {(int)response.StatusCode}");
+        }
+
+        return await response.Content.ReadAsStringAsync();
+      });
 
       if (content.Contains("http://localhost:8082/login"))
       {

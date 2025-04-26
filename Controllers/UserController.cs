@@ -1,6 +1,7 @@
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -11,11 +12,13 @@ public class UserController : ControllerBase
 {
   private readonly InternalUserService.InternalUserServiceClient _internalUserServiceClient;
   private readonly ILogger<UserController> _logger;
+  private readonly ResilienceInvoker _resilienceInvoker;
 
-  public UserController(InternalUserService.InternalUserServiceClient internalUserServiceClient, ILogger<UserController> logger)
+  public UserController(InternalUserService.InternalUserServiceClient internalUserServiceClient, ILogger<UserController> logger, ResilienceInvoker resilienceInvoker)
   {
     _internalUserServiceClient = internalUserServiceClient;
     _logger = logger;
+    _resilienceInvoker = resilienceInvoker;
   }
 
   [HttpPost("{userId}/ban")]
@@ -27,7 +30,9 @@ public class UserController : ControllerBase
     };
 
     var request = new BanUserRequest { UserId = userId };
-    var response = await _internalUserServiceClient.BanUserAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _internalUserServiceClient.BanUserAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -46,7 +51,9 @@ public class UserController : ControllerBase
       PageSize = pageSize ?? 10,
       EmailFilter = search ?? ""
     };
-    var response = await _internalUserServiceClient.ListUsersAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _internalUserServiceClient.ListUsersAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -58,8 +65,9 @@ public class UserController : ControllerBase
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
     };
-
-    var response = await _internalUserServiceClient.CreateUserAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _internalUserServiceClient.CreateUserAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -73,7 +81,9 @@ public class UserController : ControllerBase
     };
 
     var request = new GetProfileRequest();
-    var response = await _internalUserServiceClient.GetProfileAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _internalUserServiceClient.GetProfileAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }

@@ -1,6 +1,7 @@
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -11,11 +12,13 @@ public class EmployeeController : ControllerBase
 {
   private readonly InternalUserService.InternalUserServiceClient _internalUserServiceClient;
   private readonly ILogger<EmployeeController> _logger;
+  private readonly ResilienceInvoker _resilienceInvoker;
 
-  public EmployeeController(InternalUserService.InternalUserServiceClient internalUserServiceClient, ILogger<EmployeeController> logger)
+  public EmployeeController(InternalUserService.InternalUserServiceClient internalUserServiceClient, ILogger<EmployeeController> logger, ResilienceInvoker resilienceInvoker)
   {
     _internalUserServiceClient = internalUserServiceClient;
     _logger = logger;
+    _resilienceInvoker = resilienceInvoker;
   }
 
   [HttpPost]
@@ -25,8 +28,9 @@ public class EmployeeController : ControllerBase
     {
       { "Authorization", Request.Headers["Authorization"].FirstOrDefault() },
     };
-
-    var response = await _internalUserServiceClient.CreateEmployeeAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _internalUserServiceClient.CreateEmployeeAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }

@@ -2,6 +2,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -12,11 +13,13 @@ public class CreditController : ControllerBase
 {
   private readonly CreditService.CreditServiceClient _creditServiceClient;
   private readonly ScoringService.ScoringServiceClient _scoringServiceClient;
+  private readonly ResilienceInvoker _resilienceInvoker;
 
-  public CreditController(CreditService.CreditServiceClient creditServiceClient, ScoringService.ScoringServiceClient scoringServiceClient)
+  public CreditController(CreditService.CreditServiceClient creditServiceClient, ScoringService.ScoringServiceClient scoringServiceClient, ResilienceInvoker resilienceInvoker)
   {
     _creditServiceClient = creditServiceClient;
     _scoringServiceClient = scoringServiceClient;
+    _resilienceInvoker = resilienceInvoker;
   }
 
   [HttpGet("{agreementId}")]
@@ -33,7 +36,9 @@ public class CreditController : ControllerBase
       ClientId = clientId,
       AgreementId = agreementId
     };
-    var response = await _creditServiceClient.GetAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _creditServiceClient.GetAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -53,7 +58,9 @@ public class CreditController : ControllerBase
       Offset = offset ?? 0,
       Limit = limit ?? 100
     };
-    var response = await _creditServiceClient.GetAllAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _creditServiceClient.GetAllAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response.Credits);
   }
@@ -72,7 +79,9 @@ public class CreditController : ControllerBase
       ClientId = clientId,
       AgreementId = agreementId
     };
-    var response = await _creditServiceClient.GetPaymentsAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _creditServiceClient.GetPaymentsAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -90,7 +99,9 @@ public class CreditController : ControllerBase
     {
       ClientId = userId.HasValue ? userId.Value.ToString() : clientId,
     };
-    var response = await _scoringServiceClient.GetRateAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _scoringServiceClient.GetRateAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }

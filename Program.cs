@@ -3,6 +3,7 @@ using Asp.Versioning;
 using WolfBankGateway.Middlewares;
 using WolfBankGateway.Protos.Services;
 using Serilog;
+using WolfBankGateway.Invokers;
 
 var outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] User.Microservice 🧔 {Message:lj}{NewLine}{Exception}";
 Log.Logger = new LoggerConfiguration()
@@ -90,6 +91,7 @@ try
   {
     httpClient.BaseAddress = new Uri(userHttpConnectionString);
   });
+  builder.Services.AddSingleton<ResilienceInvoker>();
 
   var app = builder.Build();
 

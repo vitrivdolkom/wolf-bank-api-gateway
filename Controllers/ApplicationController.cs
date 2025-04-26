@@ -2,6 +2,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -11,10 +12,12 @@ namespace WolfBankGateway.Controllers;
 public class ApplicationController : ControllerBase
 {
   private readonly ApplicationService.ApplicationServiceClient _applicationServiceClient;
+  private readonly ResilienceInvoker _resilienceInvoker;
 
-  public ApplicationController(ApplicationService.ApplicationServiceClient applicationServiceClient)
+  public ApplicationController(ApplicationService.ApplicationServiceClient applicationServiceClient, ResilienceInvoker resilienceInvoker)
   {
     _applicationServiceClient = applicationServiceClient;
+    _resilienceInvoker = resilienceInvoker;
   }
 
   [HttpGet("{id}")]
@@ -26,7 +29,9 @@ public class ApplicationController : ControllerBase
     };
 
     var request = new GetApplicationRequest { Id = id };
-    var response = await _applicationServiceClient.GetAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _applicationServiceClient.GetAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -53,8 +58,9 @@ public class ApplicationController : ControllerBase
       Interest = body.Interest,
       UserId = userId
     };
-
-    var response = await _applicationServiceClient.CreateAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _applicationServiceClient.CreateAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -68,7 +74,9 @@ public class ApplicationController : ControllerBase
       { "Idempotency-Key", Request.Headers["Idempotency-Key"].FirstOrDefault() }
     };
 
-    var response = await _applicationServiceClient.UpdateAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _applicationServiceClient.UpdateAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -82,7 +90,9 @@ public class ApplicationController : ControllerBase
     };
 
     var request = new DeleteApplicationRequest { Id = id };
-    await _applicationServiceClient.DeleteAsync(request, metadata);
+    await _resilienceInvoker.ExecuteAsync(
+      () => _applicationServiceClient.DeleteAsync(request, metadata).ResponseAsync
+    );
 
     return NoContent();
   }
@@ -102,7 +112,9 @@ public class ApplicationController : ControllerBase
       UserId = userId.HasValue ? userId.Value.ToString() : HttpContext.Items["UserId"].ToString()
     };
     request.Status.AddRange(status);
-    var response = await _applicationServiceClient.ListAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _applicationServiceClient.ListAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }

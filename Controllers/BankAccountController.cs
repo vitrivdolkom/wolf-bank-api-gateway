@@ -1,7 +1,7 @@
 using Grpc.Core;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WolfBankGateway.Converters;
+using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
 namespace WolfBankGateway.Controllers;
@@ -13,12 +13,14 @@ public class BankAccountController : ControllerBase
   private readonly BankAccountService.BankAccountServiceClient _bankAccountClient;
   private readonly TransactionService.TransactionServiceClient _transactionClient;
   private readonly ILogger<BankAccountController> _logger;
+  private readonly ResilienceInvoker _resilienceInvoker;
 
-  public BankAccountController(BankAccountService.BankAccountServiceClient bankAccountClient, TransactionService.TransactionServiceClient transactionClient, ILogger<BankAccountController> logger)
+  public BankAccountController(BankAccountService.BankAccountServiceClient bankAccountClient, TransactionService.TransactionServiceClient transactionClient, ILogger<BankAccountController> logger, ResilienceInvoker resilienceInvoker)
   {
     _bankAccountClient = bankAccountClient;
     _transactionClient = transactionClient;
     _logger = logger;
+    _resilienceInvoker = resilienceInvoker;
   }
 
   // POST /api/bank-accounts
@@ -39,7 +41,9 @@ public class BankAccountController : ControllerBase
       IdempotencyKey = idempotencyKey,
       ClientId = clientId
     };
-    var response = await _bankAccountClient.CreateAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _bankAccountClient.CreateAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response);
   }
@@ -60,7 +64,9 @@ public class BankAccountController : ControllerBase
       BankAccountId = bank_account_id,
       ClientId = clientId
     };
-    await _bankAccountClient.CloseAsync(request, metadata);
+    await _resilienceInvoker.ExecuteAsync(
+      () => _bankAccountClient.CloseAsync(request, metadata).ResponseAsync
+    );
 
     return NoContent();
   }
@@ -81,7 +87,9 @@ public class BankAccountController : ControllerBase
       Offset = offset ?? 0,
       Limit = limit ?? 100
     };
-    var response = await _bankAccountClient.GetAllAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _bankAccountClient.GetAllAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response.BankAccounts);
   }
@@ -101,7 +109,9 @@ public class BankAccountController : ControllerBase
       Offset = offset ?? 0,
       Limit = limit ?? 100
     };
-    var response = await _bankAccountClient.GetAllAccountsAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _bankAccountClient.GetAllAccountsAsync(request, metadata).ResponseAsync
+    );
 
     return Ok(response.BankAccounts);
   }
@@ -122,7 +132,9 @@ public class BankAccountController : ControllerBase
       BankAccountId = bank_account_id,
       ClientId = clientId
     };
-    var response = await _bankAccountClient.GetAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _bankAccountClient.GetAsync(request, metadata).ResponseAsync
+    );
     _logger.LogInformation("Bank account balance: {Response}", DecimalValueConverter.ToDecimal(response.Balance));
 
     return Ok(response);
@@ -146,7 +158,9 @@ public class BankAccountController : ControllerBase
       Limit = limit ?? 100
     };
     _logger.LogInformation("Get history request: {Request}", request);
-    var response = await _transactionClient.GetHistoryAsync(request, metadata);
+    var response = await _resilienceInvoker.ExecuteAsync(
+      () => _transactionClient.GetHistoryAsync(request, metadata).ResponseAsync
+    );
     _logger.LogInformation("Response: {Response}", response);
     return Ok(response.Transactions);
   }
