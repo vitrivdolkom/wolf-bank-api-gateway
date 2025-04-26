@@ -30,6 +30,9 @@ try
   builder.Services.AddEndpointsApiExplorer();
   builder.Services.AddSwaggerGen();
   builder.Services.AddHttpClient();
+  builder.Services.AddHttpContextAccessor();
+  builder.Services.AddSingleton<GrpcTraceInterceptor>();
+  builder.Services.AddSingleton<ResilienceInvoker>();
 
   var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
   var redisConnection = ConnectionMultiplexer.Connect(redisConnectionString);
@@ -39,59 +42,58 @@ try
   builder.Services.AddGrpcClient<PublicUserService.PublicUserServiceClient>(options =>
   {
     options.Address = new Uri(publicUserGrpcConnectionConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
 
   var internalUserGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("InternalUserGrpcConnection");
   builder.Services.AddGrpcClient<InternalUserService.InternalUserServiceClient>(options =>
   {
     options.Address = new Uri(internalUserGrpcConnectionConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
 
   var creditOriginationGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("CreditOriginationGrpcConnection");
   builder.Services.AddGrpcClient<ApplicationService.ApplicationServiceClient>(options =>
   {
     options.Address = new Uri(creditOriginationGrpcConnectionConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
 
   var scoringGrpcConnectionConnectionString = builder.Configuration.GetConnectionString("ScoringGrpcConnection");
   builder.Services.AddGrpcClient<ScoringService.ScoringServiceClient>(options =>
   {
     options.Address = new Uri(scoringGrpcConnectionConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
 
   var productEngineGrpcConnectionString = builder.Configuration.GetConnectionString("ProductEngineGrpcConnection");
   builder.Services.AddGrpcClient<BankAccountService.BankAccountServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
   builder.Services.AddGrpcClient<TransactionService.TransactionServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
   builder.Services.AddGrpcClient<ProductService.ProductServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
   builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
   builder.Services.AddGrpcClient<PaymentService.PaymentServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
 
   builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
-  });
+  }).AddInterceptor<GrpcTraceInterceptor>();
 
   var userHttpConnectionString = builder.Configuration.GetConnectionString("UserHttpConnection");
   builder.Services.AddHttpClient("User", httpClient =>
   {
     httpClient.BaseAddress = new Uri(userHttpConnectionString);
   });
-  builder.Services.AddSingleton<ResilienceInvoker>();
 
   var app = builder.Build();
 
