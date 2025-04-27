@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package com.bank.wolf.application.v1.firebase;
+
+option csharp_namespace = "WolfBankGateway.Protos.Services";
+
+service FirebaseService {
+  rpc FirebaseRegister(FirebaseRegisterRequest) returns (FirebaseRegisterResponse);
+}
+
+message FirebaseRegisterRequest {
+  string token = 1;
+}
+
+message FirebaseRegisterResponse {
+  string user_id = 1;
+  string token = 2;
+}

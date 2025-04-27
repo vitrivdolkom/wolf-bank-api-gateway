@@ -100,8 +100,11 @@ try
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
   });
-
   builder.Services.AddGrpcClient<CreditService.CreditServiceClient>(options =>
+  {
+    options.Address = new Uri(productEngineGrpcConnectionString);
+  });
+  builder.Services.AddGrpcClient<FirebaseService.FirebaseServiceClient>(options =>
   {
     options.Address = new Uri(productEngineGrpcConnectionString);
   });

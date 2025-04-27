@@ -38,6 +38,7 @@
     <Protobuf Include="Protos\payment_service.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\product.proto" GrpcServices="Client" />
     <Protobuf Include="Protos\transaction_service.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\firebase.proto" GrpcServices="Client" />
     <Protobuf Include="google/api/annotations.proto" GrpcServices="Client" />
     <Protobuf Include="google/api/http.proto" GrpcServices="Client" />
     <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
