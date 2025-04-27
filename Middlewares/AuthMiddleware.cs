@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using Grpc.Core;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using WolfBankGateway.Invokers;
 using WolfBankGateway.Protos.Services;
 
@@ -14,14 +15,16 @@ namespace WolfBankGateway.Middlewares
     private readonly ILogger<AuthMiddleware> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ResilienceInvoker _resilienceInvoker;
+    private readonly IOptions<GatewayConnectionStrings> _options;
 
-    public AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger, InternalUserService.InternalUserServiceClient internalUserServiceClient, IHttpClientFactory httpClientFactory, ResilienceInvoker resilienceInvoker)
+    public AuthMiddleware(RequestDelegate next, ILogger<AuthMiddleware> logger, InternalUserService.InternalUserServiceClient internalUserServiceClient, IHttpClientFactory httpClientFactory, ResilienceInvoker resilienceInvoker, IOptions<GatewayConnectionStrings> options)
     {
       _next = next;
       _logger = logger;
       _internalUserServiceClient = internalUserServiceClient;
       _httpClientFactory = httpClientFactory;
       _resilienceInvoker = resilienceInvoker;
+      _options = options;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -56,7 +59,7 @@ namespace WolfBankGateway.Middlewares
       var url = QueryHelpers.AddQueryString("/v1/authorize", new Dictionary<string, string?>
         {
             { "client_id", "wem7LcxWDUArXEm-0e4nsEjkwsroaXU_" },
-            { "redirect_uri", "http://localhost:3000/"},
+            { "redirect_uri", _options.Value.FrontendUrl },
             { "response_type", "code" }
         });
 

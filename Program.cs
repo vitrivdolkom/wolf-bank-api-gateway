@@ -6,6 +6,7 @@ using Serilog;
 using WolfBankGateway.Invokers;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using WolfBankGateway;
 
 var outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] 🐺 [TraceId:{TraceId}] {Message:lj}{NewLine}{Exception}";
 Log.Logger = new LoggerConfiguration()
@@ -35,6 +36,7 @@ try
   builder.Services.AddHttpClient();
   builder.Services.AddHttpContextAccessor();
   builder.Services.AddSingleton<ResilienceInvoker>();
+  builder.Services.Configure<GatewayConnectionStrings>(builder.Configuration.GetSection("ConnectionStrings"));
 
   var jaegerConnectionString = builder.Configuration.GetConnectionString("JaegerConnection");
   builder.Services.AddOpenTelemetry().WithTracing(b =>

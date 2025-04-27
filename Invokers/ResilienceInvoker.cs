@@ -26,14 +26,14 @@ public class ResilienceInvoker
             });
 
     var retryPolicy = handledExceptions
-        .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+        .WaitAndRetryAsync(2, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
 
     var circuitBreakerPolicy = handledExceptions
         .AdvancedCircuitBreakerAsync(
             failureThreshold: 0.7,
-            samplingDuration: TimeSpan.FromSeconds(30),
-            minimumThroughput: 10,
-            durationOfBreak: TimeSpan.FromSeconds(15),
+            samplingDuration: TimeSpan.FromSeconds(60),
+            minimumThroughput: 20,
+            durationOfBreak: TimeSpan.FromSeconds(30),
             onBreak: (ex, breakDelay, context) =>
             {
               _logger.LogInformation($"[Circuit Breaker] Broken due to: {ex.Message}");
