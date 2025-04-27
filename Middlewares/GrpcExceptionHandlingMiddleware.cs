@@ -1,4 +1,5 @@
 using Grpc.Core;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -24,6 +25,7 @@ public class GrpcExceptionHandlingMiddleware
   public async Task Invoke(HttpContext context)
   {
     var isError = false;
+    var traceId = Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
 
     try
     {
@@ -40,6 +42,7 @@ public class GrpcExceptionHandlingMiddleware
 
       var errorResponse = new
       {
+        traceId,
         error = grpcException.Status.Detail,
         grpcStatus = grpcException.Status.StatusCode.ToString(),
       };
@@ -50,13 +53,14 @@ public class GrpcExceptionHandlingMiddleware
     {
       isError = true;
 
-      _logger.LogError(ex, "An unexpected error occurred");
+      _logger.LogError(ex, "Unexpected error occurred");
 
       context.Response.ContentType = "application/json";
       context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
       var errorResponse = new
       {
+        traceId,
         error = "An unexpected error occurred",
       };
 

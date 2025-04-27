@@ -14,6 +14,7 @@ services:
       - ConnectionStrings__CreditOriginationGrpcConnection=http://host.docker.internal:50051
       - ConnectionStrings__ScoringGrpcConnection=http://host.docker.internal:9093
       - ConnectionStrings__UserHttpConnection=http://host.docker.internal:8082
+      - ConnectionStrings__JaegerConnection=http://host.docker.internal:4317
     depends_on:
       - redis
     networks:
